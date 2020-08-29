@@ -64,6 +64,7 @@ class MySSHClient(object):
             :type commands: List[str]
         """
         self.session = self._connect()
-        for cmd in commands:
-            stdin, stdout, stderr = self.client.exec_command(cmd)
-            print(stdout.read().decode('utf-8'))
+        cmd = '; '.join(commands)
+        stdin, stdout, stderr = self.client.exec_command(cmd)
+        result = (stdout.read().decode('utf-8').splitlines())
+        return result
