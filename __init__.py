@@ -5,6 +5,9 @@ from typing import List, Union
 from paramiko import SSHClient, AutoAddPolicy, RSAKey
 from paramiko.auth_handler import AuthenticationException, SSHException
 
+from opsdroid.skill import Skill
+from opsdroid.matchers import match_regex
+
 logger = logging.getLogger(__name__)
 
 class ServerError(Exception):
@@ -77,3 +80,19 @@ class MySSHClient(object):
         stdin, stdout, stderr = self.client.exec_command(cmd)
         result = (stdout.read().decode('utf-8').splitlines())
         return result
+
+class SSHSkill(Skill):
+    def __init__(self, opsdroid, config):
+        super(SSHSkill, self).__init__(opsdroid, config)
+        logger.debug("Loaded SSH Skill")
+        self.ssh_user = config.get('user', 'admin')
+        self.ssh_port = config.get('port', None)
+        self.ssh_key = config.get('key', None)
+
+    @match_regex(r'[Rr]un on (?P<host>.*) (?P<command>\w+.*)')
+    async def ssh_exec(self, message):
+        hostname = message.regex.group('host')
+        cmd = message.regex.group('command')
+        r = MySSHClient(hostname, self.ssh_port, self.ssh_user, self.ssh_key)
+        out = r.send_commands_to_server([f'{cmd}'])
+        await message.respond(f"{hostname}: \n{chr(10).join(out)}\n\n")
