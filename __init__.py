@@ -10,12 +10,6 @@ from opsdroid.matchers import match_regex
 
 logger = logging.getLogger(__name__)
 
-class ServerError(Exception):
-    """
-    An exception class for exceptional behavior that occurs while working with servers.
-    """
-    pass
-
 class MySSHClient(object):
     """
         Client to communicate with remote servers via SSH
